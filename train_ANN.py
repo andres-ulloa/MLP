@@ -6,14 +6,6 @@ label_position = 28 * 28
 
 
 
-def compute_cost_function():
-    pass
-    
-
-
-def run_gradient_descent(dataset, model, learning_rate = 0.5):
-    pass
-
 def classify(dataset, model):
 
     global label_position
@@ -76,8 +68,13 @@ def compute_confution_matrix(labels):
     return confution_matrix
 
 
-def train(ANN, dataset):
-    pass
+def train(neural_net, dataset, num_epochs):
+    neural_net.initialize_weights()
+    for i in range(0 , num_epochs):
+        neural_net.run_activation_pass()
+        neural_net.run_backpropagation()
+        
+
 
 def main():
     
@@ -85,14 +82,12 @@ def main():
     input_layer_size = 28 * 28 #there are going to be as much input neurons as there are pixels in each image
     num_classes = 10
     num_hidden_layers = 2
-    hidden_layer_size = 20 #not considering bias units so a + 1 size in each layer should always be taken into account
-
-    sigmoid_func =  lambda x:  1/(1 + math.exp(- x))
-    train_test, test_set = trim_dataset(dataset, 900, 100)
+    hidden_layer_size = 10 #not considering bias units so a + 1 size in each layer should always be taken into account
     
+    train_test, test_set = trim_dataset(dataset, 900, 100)    
     neural_net = ANN(input_layer_size, num_classes, num_hidden_layers, sigmoid_func, hidden_layer_size)
-    neural_net.initialize_weights()
     train(neural_net, dataset)
+
 
     """
     labels = classify(test_set, neural_net)
