@@ -71,9 +71,8 @@ def compute_confution_matrix(labels):
 def train(neural_net, dataset, num_epochs):
     neural_net.initialize_weights()
     for i in range(0 , num_epochs):
-        neural_net.run_activation_pass()
-        neural_net.run_backpropagation()
-        
+        neural_net.train_on_input(dataset)
+
 
 
 def main():
@@ -83,11 +82,13 @@ def main():
     num_classes = 10
     num_hidden_layers = 2
     hidden_layer_size = 10 #not considering bias units so a + 1 size in each layer should always be taken into account
-    
-    train_test, test_set = trim_dataset(dataset, 900, 100)    
-    neural_net = ANN(input_layer_size, num_classes, num_hidden_layers, sigmoid_func, hidden_layer_size)
-    train(neural_net, dataset)
+    num_epocs = 1000
+    training_set_size = 900
+    test_set_size = 100
 
+    train_test, test_set = trim_dataset(dataset, train_set_size, test_set_size)    
+    neural_net = ANN(input_layer_size, num_classes, num_hidden_layers, sigmoid_func, hidden_layer_size)
+    train(neural_net, dataset, num_epochs)
 
     """
     labels = classify(test_set, neural_net)
