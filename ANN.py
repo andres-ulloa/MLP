@@ -52,7 +52,7 @@ class ANN:
     def train_on_input(self, dataset):
         
         for i in range(0, len(dataset)):    
-            
+
             print('Going through sample: ', i, '\n\n')
             label = dataset[len(dataset[i])]
             feature_vector = np.delete(dataset[i], len(dataset[i]))
@@ -78,16 +78,23 @@ class ANN:
 
     def run_backpropagation(self, feature_vector, label):
         
-        self.weight_gradients = []
+        weight_gradients = []
         vector_label = np.zeros(self.output_layer_size, dtype = int)
         vector_label[label] = 1
+        
+        last_layer_output =  self.activation_vals[len(self.activation_vals)]
+        global_error = (2 * (vector_label - last_layer_output) * sigmoid_derivative(last_layer_output))
 
         for layer_index in range((self.num_hidden_layers + 2) - 1, -1, -1):
-
+            
             #the error starts propagating from the top layer (the one which is the closest to the output layer)
-            if layer_index == self.num_hidden_layers + 2:
-                pass 
-            else:
-                pass
+            layer_gradient = np.dot(self.activation_vals[layer_index - 2], np.dot(global_error, self.weights[layer_index] ) * sigmoid_derivative(self.activation_vals[layer_index - 1]))
+            weight_gradients.append(layer_weights_gradient)
+        
+        for layer_index in range(0, len(self.weights)): 
+            self.weights[layer_index] += weight_gradients.pop() * self.learning_rate
 
+
+        
+        
         
