@@ -69,10 +69,26 @@ def compute_confution_matrix(labels):
 
 
 def train(neural_net, dataset, num_epochs):
-    neural_net.initialize_weights()
-    for i in range(0 , num_epochs):
-        neural_net.train_on_input(dataset)
 
+    neural_net.initialize_weights()
+    print('------------------------------------------------------------------------------------------------------')
+    print('----------------------------------INITIALIZING TRAINING-----------------------------------------------')
+    print('------------------------------------------------------------------------------------------------------\n\n')
+    print('Epochs = ', num_epochs)
+    print('Alpha_rate = ', neural_net.learning_rate)
+    print('Hidden layers = ', neural_net.num_hidden_layers)
+    print('Input layer size = ', neural_net.input_layer_size)
+    print('Hidden layer size = ', neural_net.hidden_layer_size)
+    print('Output layer size = ', neural_net.output_layer_size)
+    input('Press enter to continue...')
+    for i in range(0 , num_epochs):
+        print('------------------------------------------------------------------------------------------------------')
+        print('------------------------------------------------------------------------------------------------------')
+        print('------------------------------------------------------------------------------------------------------')
+        print('Epoch num: ', i, '\n')
+        neural_net.train_on_input(dataset)
+        print('---------------------------------------------------------------------------------------------------------------\n')
+        print('---------------------------------------------------------------------------------------------------------------\n')
 
 
 def main():
