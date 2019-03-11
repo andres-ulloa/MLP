@@ -3,6 +3,13 @@ import numpy as np
 import math
 
 
+def sigmoid(x):
+    return 1.0/(1+ np.exp(-x))
+
+
+def sigmoid_derivative(x):
+    return x * (1.0 - x)
+
 
 class ANN:
     
@@ -15,43 +22,48 @@ class ANN:
         self.num_layers = num_layers
         self.learning_rate = learning_rate
 
-
-    def sigmoid(x):
-        return 1.0/(1+ np.exp(-x))
-
-
-    def sigmoid_derivative(x):
-        return x * (1.0 - x)
     
 
     def initialize_weights(self):
+        
         self.weights = []
         
-        for i in range(0, self.num_hidden_layers): 
-             
-            weights_vector = None
+        for layer_index in range(0, self.num_hidden_layers): 
             
-            if i == 0: #we consider this to be the edge case where the weights connect the input layer to the hidden layers
-                
-                weights_vector = np.random.uniform(low = -0.1, high = 0.1, size = self.hidden_layer_size * self.input_layer_size)
+            weights_matrix = []
             
-            elif i == num_hidden_layers: # we treat this as the special case where the inner layers connect to the output layer 
+            if layer_index == 0: #we consider this to be the edge case where the weights connect the input layer to the hidden layers
                 
-                weights_vector = np.random.uniform(low = -0.1, high = 0.1, size = self.hidden_layer_size * self.output_layer_size)
+                for j in range(0 , self.hidden_layer_size):
+                
+                    weights_vector = np.random.uniform(low = -0.1, high = 0.1, size = self.input_layer_size)
+                    weights_matrix.append(weights_vector)
+
+            
+            elif layer_index == num_hidden_layers: # we treat this as the special case where the inner layers connect to the output layer 
+                
+                for j in range(0, self.hidden_layer_size):
+                    
+                    weights_vector = np.random.uniform(low = -0.1, high = 0.1, size = self.output_layer_size)
+                    weights_matrix.append(weights_vector)
             
             else:
+                
+                for layer_index in range(0 , self.hidden_layer_size):
 
-                weights_vector = np.random.uniform(low = -0.1, high = 0.1, size = (self.hidden_layer_size * self.hidden_layer_size) + 1) #we add 1 to account for the bias unit in each hidden layer
-            
-            self.weights.append(weights_vector)
-            self.bias_units = np.ones(self.num_layers) 
+                    weights_vector = np.random.uniform(low = -0.1, high = 0.1, size = (self.hidden_layer_size)) #we add 1 to account for the bias unit in each hidden layer
+                    weights_matrix.append(weights_vector)
+
+                self.weights.append(weights_matrix)
+        
+        self.bias_units = np.ones(self.num_layers) 
+
 
 
     def load_weights_from_memory(self, csv_path):
        params = np.loadtxt(csv_path, delimiter = ',')
-       self.bias_units = params[len(params)]
-       self.weights = np.delete(params, len(params))
-
+       self.bias_units = params[len(params) - 1]
+       self.weights = np.delete(params, len(params) - 1)
 
 
     def save_weights(self, csv_path):
@@ -61,10 +73,10 @@ class ANN:
 
 
     def classify(self, feature_vector):
-        label = dataset[len(dataset[i])]
-        feature_vector = np.delete(feature_vector, len(dataset[i]))
+        label = dataset[len(dataset[i]) - 1]
+        feature_vector = np.delete(feature_vector, len(dataset[i]) - 1)
         run_activation_pass(feature_vector)
-        return self.activation_vals[len(self.activation_vals)]
+        return self.activation_vals[len(self.activation_vals)  -1]
 
 
     def train_on_input(self, dataset):
@@ -72,29 +84,46 @@ class ANN:
         for i in range(0, len(dataset)):    
 
             print('Going through sample: ', i, '\n\n')
-            label = dataset[len(dataset[i])]
-            feature_vector = np.delete(dataset[i], len(dataset[i]))
-            run_activation_pass(feature_vector)
+            label = dataset[len(dataset[i]) - 1]
+            feature_vector = np.delete(dataset[i], len(dataset[i]) - 1)
+            self.run_activation_pass(feature_vector)
 
             if num_hidden_layers > 1:
-                run_multilayer_backpropagation(feature_vector, label)
+                self.run_multilayer_backpropagation(feature_vector, label)
             else:
-                run_shallow_backpropagation(feature_vector, label)   
+                self.run_shallow_backpropagation(feature_vector, label)   
 
 
     def run_activation_pass(self, feature_vector):
      
         self.activation_vals = []
+        print('FV L = ', len(feature_vector))
         
         for layer_index in range(0 , self.num_layers): 
             
+            activation_vector = []
+
             if layer_index == 0:
-                activation_output = sigmoid(np.dot(feature_vector, self.weights[layer_index]) + self.bias_units[layer_index])
-       
+                
+                for j in range(0 , self.hidden_layer_size):
+                    
+                    activation_output = sigmoid(np.dot(feature_vector, self.weights[layer_index]) + self.bias_units[layer_index])
+                    activation_vector.append(activation_output)
+
+            elif layer_index == num_hidden_layers:
+
+                for j in range(0 , self.output_layer_size):
+
+                    activation_output = sigmoid(np.dot(feature_vector, self.weights[layer_index]) + self.bias_units[layer_index])
+                    activation_vector.append(activation_output)            
             else:
-                activation_output = sigmoid(np.dot(self.activation_vals[layer_index - 1], self.weights[layer_index]) + self.bias_units[layer_index])
-            
-            self.activation_vals.append(activation_output)
+
+                for j in range(0 , self.output_layer_size):
+                    
+                    activation_output = sigmoid(np.dot(self.activation_vals[layer_index - 1], self.weights[layer_index]) + self.bias_units[layer_index])
+                    activation_vector.append(activation_output)
+
+            self.activation_vals.append(activation_vector)
             
     
     def run_shallow_backpropagation(self, feature_vector,label):
@@ -102,7 +131,7 @@ class ANN:
         vector_label = np.zeros(self.output_layer_size, dtype = int)
         vector_label[label] = 1
 
-        last_layer_output =  self.activation_vals[len(self.activation_vals)]
+        last_layer_output =  self.activation_vals[len(self.activation_vals)- 1]
         global_error_gradient = (2 * (vector_label - last_layer_output) * sigmoid_derivative(last_layer_output))
 
         layer_2_gradient = np.dot(last_layer_output, global_error_gradient)
@@ -122,7 +151,7 @@ class ANN:
         vector_label = np.zeros(self.output_layer_size, dtype = int)
         vector_label[label] = 1
         
-        last_layer_output =  self.activation_vals[len(self.activation_vals)]
+        last_layer_output =  self.activation_vals[len(self.activation_vals) - 1]
         global_error_gradient = (2 * (vector_label - last_layer_output) * sigmoid_derivative(last_layer_output))
 
         for layer_index in range((self.num_layers) - 1, -1, -1):

@@ -126,6 +126,7 @@ def main():
     learning_rate = 0.01
 
     train_test, test_set = trim_dataset(dataset, training_set_size, test_set_size)    
+    print(len(train[0]))
     neural_net = ANN(input_layer_size, num_classes, num_hidden_layers, hidden_layer_size, learning_rate, num_layers) 
     train(neural_net, dataset, num_epochs)
     neural_net.save_weights('model_params.csv')
