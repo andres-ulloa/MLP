@@ -96,14 +96,14 @@ def main():
     dataset = np.genfromtxt('mnist.txt')
     input_layer_size = 28 * 28 #there are going to be as much input neurons as there are pixels in each image
     num_classes = 10
-    num_hidden_layers = 2
+    num_hidden_layers = 1
     hidden_layer_size = 10 #not considering bias units so a + 1 size in each layer should always be taken into account
     num_epocs = 1000
     training_set_size = 900
     test_set_size = 100
 
     train_test, test_set = trim_dataset(dataset, train_set_size, test_set_size)    
-    neural_net = ANN(input_layer_size, num_classes, num_hidden_layers, sigmoid_func, hidden_layer_size)
+    neural_net = ANN(input_layer_size, num_classes, num_hidden_layers, sigmoid_func, hidden_layer_size, num_hidden_layers + 1) #adds 1 to take into consideration the weights that correspond to input layers
     train(neural_net, dataset, num_epochs)
 
     """

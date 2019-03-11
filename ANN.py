@@ -6,13 +6,14 @@ import math
 
 class ANN:
     
-    def __init__(self, input_layer_size, output_layer_size, num_hidden_layers, hidden_layer_size, learning_rate):
+    def __init__(self, input_layer_size, output_layer_size, num_hidden_layers, hidden_layer_size, learning_rate, num_layers):
        
         self.input_layer_size = input_layer_size
         self.output_layer_size = output_layer_size
         self.num_hidden_layers = num_hidden_layers             
         self.hidden_layer_size = hidden_layer_size 
-        
+        self.num_layers = num_layers
+
 
     def sigmoid(x):
         return 1.0/(1+ np.exp(-x))
@@ -25,7 +26,7 @@ class ANN:
     def initialize_weights(self):
         self.weights = []
         
-        for i in range(0, self.num_hidden_layers): 
+        for i in range(0, self.num_layers): 
              
             weights_vector = np.zeros(1, dtype = float) 
             
@@ -39,14 +40,19 @@ class ANN:
             
             else:
 
-                weights_vector = np.random.uniform(low = -0.1, high = 0.1, size = (self.hidden_layer_size * self.hidden_layer_size) + 1) #we add 1 to account for the bias unit in each layer
+                weights_vector = np.random.uniform(low = -0.1, high = 0.1, size = (self.hidden_layer_size * self.hidden_layer_size) + 1) #we add 1 to account for the bias unit in each hidden layer
             
             self.weights.append(weights_vector)
             self.bias_units = np.random.unform(low = -0.1, high = 0.1, size = num_hidden_layers)
 
 
+    def load_weights_from_memory(csv_path):
+        pass
+
+
     def classify(self, feature_vector):
-         pass
+        run_activation_pass(feature_vector)
+        return self.activation_vals[len(self.activation_vals)]
 
 
     def train_on_input(self, dataset):
@@ -57,14 +63,14 @@ class ANN:
             label = dataset[len(dataset[i])]
             feature_vector = np.delete(dataset[i], len(dataset[i]))
             run_activation_pass(feature_vector)
-            run_backpropagation(feature_vector, label)
+            run_shallow_backpropagation(feature_vector, label)
 
 
     def run_activation_pass(self, feature_vector):
      
         self.activation_vals = []
         
-        for layer_index in range(0 , self.num_hidden_layers + 2): #adds 2 to take into consideration the weights that correspond to the output and input layers
+        for layer_index in range(0 , self.num_layers): 
             
             if layer_index == 0:
                 activation_output = sigmoid(np.dot(feature_vector, self.weights[layer_index]) + self.bias_units[layer_index])
@@ -74,22 +80,26 @@ class ANN:
             
             self.activation_vals.append(activation_output)
             
-        
+    
+    def run_shallow_backpropagation(self, feature_vector,label):
+        pass
 
-    def run_backpropagation(self, feature_vector, label):
+
+    def run_multilayer_backpropagation(self, feature_vector, label):
         
         weight_gradients = []
         vector_label = np.zeros(self.output_layer_size, dtype = int)
         vector_label[label] = 1
         
         last_layer_output =  self.activation_vals[len(self.activation_vals)]
-        global_error = (2 * (vector_label - last_layer_output) * sigmoid_derivative(last_layer_output))
+        global_error_gradient = (2 * (vector_label - last_layer_output) * sigmoid_derivative(last_layer_output))
 
-        for layer_index in range((self.num_hidden_layers + 2) - 1, -1, -1):
-            
+        for layer_index in range((self.num_layers) - 1, -1, -1):
+               
+
             #the error starts propagating from the top layer (the one which is the closest to the output layer)
-            layer_gradient = np.dot(self.activation_vals[layer_index - 2], np.dot(global_error, self.weights[layer_index] ) * sigmoid_derivative(self.activation_vals[layer_index - 1]))
-            weight_gradients.append(layer_weights_gradient)
+            layer_gradient = np.dot(self.activation_vals[layer_index], np.dot(global_error_gradient, self.weights[layer_index] ) * sigmoid_derivative(self.activation_vals[layer_index]))
+            weight_gradients.append(layer_gradient)
         
         for layer_index in range(0, len(self.weights)): 
             self.weights[layer_index] += weight_gradients.pop() * self.learning_rate
