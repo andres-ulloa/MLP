@@ -43,7 +43,7 @@ class ANN:
                 weights_vector = np.random.uniform(low = -0.1, high = 0.1, size = (self.hidden_layer_size * self.hidden_layer_size) + 1) #we add 1 to account for the bias unit in each hidden layer
             
             self.weights.append(weights_vector)
-            self.bias_units = np.random.unform(low = -0.1, high = 0.1, size = num_hidden_layers)
+            self.bias_units = np.ones(num_hidden_layers + 1) #we add a 1 to consider the input layer
 
 
     def load_weights_from_memory(csv_path):
@@ -96,11 +96,13 @@ class ANN:
 
         d_weights1 = np.dot(self.input.T, (np.dot(2*(self.y - self.output) * sigmoid_derivative(self.output), self.weights2.T) * sigmoid_derivative(self.layer1)))
 
-        self.weights1 += layer_1_gradient * self.learning_rate
-        self.weights2 += layer_2_gradient * self.learning_rate
+        self.weights[0] += layer_1_gradient * self.learning_rate
+        self.bias_units[0] += layer_1_gradient * self.learning_rate
+        self.weights[1] += layer_2_gradient * self.learning_rate
+        self.bias_units[1] += layer_2_gradient * self.learning_rate
 
 
-    """ no quedo :( """
+    """ incompleto """
     def run_multilayer_backpropagation(self, feature_vector, label):
         
         weight_gradients = []
