@@ -1,1 +1,1 @@
-# Multi-Layer-Neural-Network
+# Shallow-Neural-Network
