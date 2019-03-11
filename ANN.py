@@ -26,9 +26,9 @@ class ANN:
     def initialize_weights(self):
         self.weights = []
         
-        for i in range(0, self.num_layers): 
+        for i in range(0, self.num_hidden_layers): 
              
-            weights_vector = np.zeros(1, dtype = float) 
+            weights_vector = None
             
             if i == 0: #we consider this to be the edge case where the weights connect the input layer to the hidden layers
                 
@@ -49,6 +49,8 @@ class ANN:
     def load_weights_from_memory(csv_path):
         pass
 
+    def save_weights(csv_path):
+        pass
 
     def classify(self, feature_vector):
         run_activation_pass(feature_vector)
@@ -82,9 +84,23 @@ class ANN:
             
     
     def run_shallow_backpropagation(self, feature_vector,label):
-        pass
+        
+        vector_label = np.zeros(self.output_layer_size, dtype = int)
+        vector_label[label] = 1
+
+        last_layer_output =  self.activation_vals[len(self.activation_vals)]
+        global_error_gradient = (2 * (vector_label - last_layer_output) * sigmoid_derivative(last_layer_output))
+
+        layer_2_gradient = np.dot(last_layer_output, global_error_gradient)
+        layer_1_gradient = np.dot(feature_vector,  (np.dot(global_error_gradient, self.weights[1]) * sigmoid_derivative(self.activation_vals[0])))
+
+        d_weights1 = np.dot(self.input.T, (np.dot(2*(self.y - self.output) * sigmoid_derivative(self.output), self.weights2.T) * sigmoid_derivative(self.layer1)))
+
+        self.weights1 += layer_1_gradient * self.learning_rate
+        self.weights2 += layer_2_gradient * self.learning_rate
 
 
+    """ no quedo :( """
     def run_multilayer_backpropagation(self, feature_vector, label):
         
         weight_gradients = []
@@ -96,7 +112,6 @@ class ANN:
 
         for layer_index in range((self.num_layers) - 1, -1, -1):
                
-
             #the error starts propagating from the top layer (the one which is the closest to the output layer)
             layer_gradient = np.dot(self.activation_vals[layer_index], np.dot(global_error_gradient, self.weights[layer_index] ) * sigmoid_derivative(self.activation_vals[layer_index]))
             weight_gradients.append(layer_gradient)
