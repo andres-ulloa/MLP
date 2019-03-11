@@ -13,6 +13,7 @@ class ANN:
         self.num_hidden_layers = num_hidden_layers             
         self.hidden_layer_size = hidden_layer_size 
         self.num_layers = num_layers
+        self.learning_rate = learning_rate
 
 
     def sigmoid(x):
@@ -43,13 +44,14 @@ class ANN:
                 weights_vector = np.random.uniform(low = -0.1, high = 0.1, size = (self.hidden_layer_size * self.hidden_layer_size) + 1) #we add 1 to account for the bias unit in each hidden layer
             
             self.weights.append(weights_vector)
-            self.bias_units = np.ones(num_layers) 
+            self.bias_units = np.ones(self.num_layers) 
 
 
     def load_weights_from_memory(self, csv_path):
        params = np.loadtxt(csv_path, delimiter = ',')
        self.bias_units = params[len(params)]
-       self.weights = np.delete(len(params))
+       self.weights = np.delete(params, len(params))
+
 
 
     def save_weights(self, csv_path):
@@ -59,6 +61,8 @@ class ANN:
 
 
     def classify(self, feature_vector):
+        label = dataset[len(dataset[i])]
+        feature_vector = np.delete(feature_vector, len(dataset[i]))
         run_activation_pass(feature_vector)
         return self.activation_vals[len(self.activation_vals)]
 
@@ -71,7 +75,7 @@ class ANN:
             label = dataset[len(dataset[i])]
             feature_vector = np.delete(dataset[i], len(dataset[i]))
             run_activation_pass(feature_vector)
-            
+
             if num_hidden_layers > 1:
                 run_multilayer_backpropagation(feature_vector, label)
             else:
