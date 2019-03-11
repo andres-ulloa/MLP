@@ -71,7 +71,11 @@ class ANN:
             label = dataset[len(dataset[i])]
             feature_vector = np.delete(dataset[i], len(dataset[i]))
             run_activation_pass(feature_vector)
-            run_shallow_backpropagation(feature_vector, label)
+            
+            if num_hidden_layers > 1:
+                run_multilayer_backpropagation(feature_vector, label)
+            else:
+                run_shallow_backpropagation(feature_vector, label)   
 
 
     def run_activation_pass(self, feature_vector):
