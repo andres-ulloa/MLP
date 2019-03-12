@@ -23,12 +23,13 @@ class ANN:
         self.hidden_layer_size = hidden_layer_size 
         self.num_layers = num_layers
         self.learning_rate = learning_rate
-   
-    
+        self.error_registry = list()
+
 
     def initialize_weights(self):
-        self.weights_layer_1   = np.random.rand(self.input.shape[1],self.hidden_layer_size) 
-        self.weights_layer_2 = np.random.rand(self.hidden_layer_size, self.output_layer_size) 
+
+        self.weights_layer_1 = np.random.uniform(low = -0.5, high = 0.5, size = (self.input.shape[1], self.hidden_layer_size))
+        self.weights_layer_2 = np.random.uniform(low = -0.5, high = 0.5, size = (self.hidden_layer_size,self.output_layer_size))  
         self.bias_unit = 1
 
 
@@ -36,14 +37,14 @@ class ANN:
     def load_weights_from_memory(self):
        print('\nRetrieving weights from: params_layer_1_csv, params_layer_2.csv, bias_unit.csv')
        print('...')
-       print('...')
+       print('...\n')
        self.weights_layer_1 =  np.loadtxt('params_layer_1.csv' , delimiter = ',')
        self.weights_layer_2 =  np.loadtxt('params_layer_2.csv' , delimiter = ',')
        self.bias_unit =  np.loadtxt('bias_unit.csv' , delimiter = ',')
        print(self.weights_layer_1.shape)
        print(self.weights_layer_2.shape)
        print(self.bias_unit)
-       print('Done.')
+       print('\n\nDone.\n\n')
     
 
     def save_weights(self):
@@ -65,21 +66,22 @@ class ANN:
 
 
     def run_shallow_activation_pass(self):
-
-        self.activation_layer_1 = sigmoid(np.dot(self.input, self.weights_layer_1))
-        self.output = sigmoid(np.dot(self.activation_layer_1, self.weights_layer_2)+ self.bias_unit)
-
-            
-    
-    def run_shallow_backpropagation(self):
         
-        global_error_derivative = (2 * (self.labels - self.output) * sigmoid_derivative(self.output))
+        self.activation_layer_1 = sigmoid(np.dot(self.input, self.weights_layer_1))
+       
+        self.output = sigmoid(np.dot(self.activation_layer_1, self.weights_layer_2) + self.bias_unit)
+      
+    
 
-        layer_2_gradient = np.dot(self.activation_layer_1.T, global_error_derivative)
+    def run_shallow_backpropagation(self):
+        error = self.labels - self.output
+        global_error_derivative = (2 * (error) * sigmoid_derivative(self.output))
+        
+        global_cost = np.sum(error)
+        self.error_registry.append(global_cost)
 
-        layer_2_error_derivative =  (np.dot(2 * (self.labels - self.output) * sigmoid_derivative(self.output), self.weights_layer_2.T) * sigmoid_derivative(self.activation_layer_1))
-
-        layer_1_gradient = np.dot(self.input.T, layer_2_error_derivative)
+        layer_2_gradient = np.dot(self.activation_layer_1.T, (2*(self.labels - self.output) * sigmoid_derivative(self.output)))
+        layer_1_gradient = np.dot(self.input.T, (np.dot(2*(self.labels - self.output) * sigmoid_derivative(self.output), self.weights_layer_2.T) * sigmoid_derivative(self.activation_layer_1)))
 
         b_gradient = np.sum(global_error_derivative)
 

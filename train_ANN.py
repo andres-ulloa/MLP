@@ -2,11 +2,12 @@
 import numpy as np
 import pandas as pd
 from ANN import ANN
+import matplotlib.pyplot as plt 
 
 label_position = 28 * 28
-num_epochs = 10000
-hidden_layer_size = 15
-learning_rate = 0.5
+num_epochs = 5000
+hidden_layer_size = 25
+learning_rate = 0.00005
 
 
 def find_highest_scoring_class(vector):
@@ -23,14 +24,20 @@ def find_highest_scoring_class(vector):
 
     return best_score_index
 
+def map_ones_to_integer(binary_vector):
+    for i in range(0 , len(binary_vector)):
+        if binary_vector[i] == 1:
+            return i 
+
 def classify(dataset, true_labels ,model):
 
     examples_counter = 0
     predictions = model.classify(dataset)
     results = []
     for num_example in range(0 , len(predictions)):
+
         highest_scoring_class = find_highest_scoring_class(predictions[num_example])
-        label = (num_example, highest_scoring_class, true_labels[num_example])
+        label = (num_example, highest_scoring_class, map_ones_to_integer(true_labels[num_example]))
         results.append(label)
 
     return results
@@ -48,6 +55,7 @@ def trim_dataset(dataset, train_set_size, test_set_size):
             test_set.append(dataset[i])
 
     return training_set, test_set
+
 
 
 def compute_confution_matrix(labels, num_classes):
@@ -116,7 +124,9 @@ def split_labels(dataset):
         feature_vector = dataset[i]
         label = feature_vector[len(dataset[i]) - 1]
         feature_vector = np.delete(feature_vector, len(dataset[i]) - 1)
-        labels.append([int(label)])
+        vectorized_label = np.zeros(10)
+        vectorized_label[int(label)] = 1
+        labels.append(vectorized_label)
         new_dataset.append(feature_vector)
     
     return np.asarray(labels), np.asarray(new_dataset)
@@ -162,9 +172,14 @@ def demo():
     results = compute_confution_matrix(predictions, 10)
     print('\nRESULTS = \n')
     for i in range(0, len(results)): print('Class ', i, '\n', results[i], '\n')
-    
 
-def main():
+
+def plot_error_registry(error_registry):
+    plt.plot(error_registry, linewidth = 3)
+    plt.show()
+
+
+def train_model():
     
     dataset = np.genfromtxt('mnist.txt')
     input_layer_size = 28 * 28 #there are going to be as much input neurons as there are pixels in each image
@@ -176,28 +191,16 @@ def main():
     test_set_size = 100
     num_layers = num_hidden_layers + 1
     global learning_rate
-
-    train_test, test_set = trim_dataset(dataset, training_set_size, test_set_size)    
     labels, dataset = split_labels(dataset)
     neural_net = ANN(input_layer_size, num_classes, num_hidden_layers, hidden_layer_size, learning_rate, num_layers, dataset, labels) 
-    
     train(neural_net, dataset, num_epochs)
     neural_net.save_weights()
-    
-    labels_test, dataset_test = split_labels(test_set)
-
-    print('\nRunning generated model on Test set... \n')
-    predictions = classify(dataset_test, labels_test, neural_net)
-    print(predictions)
-    results = compute_confution_matrix(predictions, num_classes)
-    print('\nRESULTS = \n')
-    for i in range(0, len(results)): print('Class ', i, '\n', results[i], '\n')
-    
+    plot_error_registry(neural_net.error_registry)
 
 
 if __name__ == '__main__':
     u_input = input('Train a new architecture?(Y/N)\n')
     if u_input.lower() == 'y':
-        main()
+        train_model()
     else:
         demo()
