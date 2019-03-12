@@ -33,24 +33,33 @@ class ANN:
 
 
 
-    def load_weights_from_memory(self, csv_path):
-       params = np.loadtxt(csv_path, delimiter = ',')
-       self.bias_unit = params[len(params) - 1]
-       self.weights = np.delete(params, len(params) - 1)
-     
+    def load_weights_from_memory(self):
+       print('\nRetrieving weights from: params_layer_1_csv, params_layer_2.csv, bias_unit.csv')
+       print('...')
+       print('...')
+       self.weights_layer_1 =  np.loadtxt('params_layer_1.csv' , delimiter = ',')
+       self.weights_layer_2 =  np.loadtxt('params_layer_2.csv' , delimiter = ',')
+       self.bias_unit =  np.loadtxt('bias_unit.csv' , delimiter = ',')
+       print(self.weights_layer_1.shape)
+       print(self.weights_layer_2.shape)
+       print(self.bias_unit)
+       print('Done.')
+    
 
-
-    def save_weights(self, csv_path):
+    def save_weights(self):
         print('\nSaving model parameters...')
-        params = [self.weights_layer_1, self.weights_layer_2, self.bias_unit] 
-        np.savetxt(csv_path, params, delimiter = ',', fmt='%s')
+        bias_unit = list()
+        bias_unit.append(self.bias_unit)
+        np.savetxt('params_layer_1.csv', self.weights_layer_1, delimiter = ',')
+        np.savetxt('params_layer_2.csv', self.weights_layer_2, delimiter = ',')
+        np.savetxt('bias_unit.csv', bias_unit, delimiter = ',')
         print('\nDone.')
 
 
     def classify(self, dataset):
         self.input = dataset
         #we get rid of the label at the end of the vector
-        run_shallow_activation_pass()
+        self.run_shallow_activation_pass()
         return self.output
 
 

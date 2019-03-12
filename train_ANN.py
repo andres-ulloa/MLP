@@ -2,7 +2,12 @@
 import numpy as np
 import pandas as pd
 from ANN import ANN
+
 label_position = 28 * 28
+num_epochs = 10000
+hidden_layer_size = 15
+learning_rate = 0.5
+
 
 def find_highest_scoring_class(vector):
 
@@ -24,7 +29,8 @@ def classify(dataset, true_labels ,model):
     predictions = model.classify(dataset)
     results = []
     for num_example in range(0 , len(predictions)):
-        label = (num_example, predictions[i], true_labels[i])
+        highest_scoring_class = find_highest_scoring_class(predictions[num_example])
+        label = (num_example, highest_scoring_class, true_labels[num_example])
         results.append(label)
 
     return results
@@ -46,39 +52,40 @@ def trim_dataset(dataset, train_set_size, test_set_size):
 
 def compute_confution_matrix(labels, num_classes):
     
+    confution_matrix_list = list()
 
-    for i in range(0 , num_classes):
+    for class_index  in range(0 , num_classes):
+
         true_positives = 0
         true_negatives = 0
         false_positives = 0
         false_negatives = 0
-        
+            
         for label in labels:
 
             assigned_label = label[1]
             true_label = label[2]
-
-            if assigned_label == true_label and assigned_label == 1:
+            if assigned_label == true_label and assigned_label == class_index:
                 true_positives += 1
-            
-            elif assigned_label == true_label and assigned_label == 0:
+                
+            elif assigned_label == true_label and assigned_label != class_index:
                 true_negatives += 1
 
-            elif assigned_label !=  true_label and assigned_label == 0:
+            elif assigned_label !=  true_label and assigned_label != class_index:
                 false_negatives += 1
-            
-            elif assigned_label != true_label and assigned_label == 1:
+                
+            elif assigned_label != true_label and assigned_label == class_index:
                 false_positives += 1
-        
+            
         confution_matrix = np.array([[true_positives, false_positives],[false_negatives, true_negatives]])
-        
-    return confution_matrix
+        confution_matrix_list.append(confution_matrix)
+
+    return confution_matrix_list
 
 
 def train(neural_net, dataset, num_epochs):
 
   
-
     print('------------------------------------------------------------------------------------------------------')
     print('----------------------------------INITIALIZING TRAINING-----------------------------------------------')
     print('------------------------------------------------------------------------------------------------------\n\n')
@@ -89,7 +96,7 @@ def train(neural_net, dataset, num_epochs):
     print('Hidden layer size = ', neural_net.hidden_layer_size)
     print('Output layer size = ', neural_net.output_layer_size)
     input('\nPress enter to continue...')
-    
+    print('\n\nTraining...')
     neural_net.initialize_weights()
 
     for i in range(0 , num_epochs):
@@ -115,32 +122,82 @@ def split_labels(dataset):
     return np.asarray(labels), np.asarray(new_dataset)
 
 
+def ensemble_model_from_file():
+
+    input_layer_size = 28 * 28 #there are going to be as much input neurons as there are pixels in each image
+    num_classes = 10
+    num_hidden_layers = 1
+    global hidden_layer_size  #not considering bias units so a + 1 size in each layer should always be taken into account
+    global num_epochs
+    training_set_size = 900
+    test_set_size = 100
+    num_layers = num_hidden_layers + 1
+    global learning_rate 
+    neural_net = ANN(input_layer_size, num_classes, num_hidden_layers, hidden_layer_size, learning_rate, num_layers, [], []) 
+    neural_net.load_weights_from_memory()
+    print('Current model architecture: \n')
+    print('Epochs = ', num_epochs)
+    print('Alpha_rate = ', neural_net.learning_rate)
+    print('Hidden layers = ', neural_net.num_hidden_layers)
+    print('Input layer size = ', neural_net.input_layer_size)
+    print('Hidden layer size = ', neural_net.hidden_layer_size)
+    print('Output layer size = ', neural_net.output_layer_size)
+    return neural_net
+
+
+
+def demo():
+
+    print('------------------------------------------------------------------------------------------------------')
+    print('------------------------------------------RUNNING DEMO--------------------------------------------------')
+    print('----------------------------------------------------------------------------------------------------\n\n')
+    dataset = np.genfromtxt('mnist.txt')
+    neural_net = ensemble_model_from_file()
+    input('\nPress enter to continue...\n')
+    train_test, test_set = trim_dataset(dataset, 900, 100)    
+    labels_test, dataset_test = split_labels(test_set)
+    print('\nRunning retrieved model on Test set... \n')
+    predictions = classify(dataset_test, labels_test, neural_net)
+    print(predictions)
+    results = compute_confution_matrix(predictions, 10)
+    print('\nRESULTS = \n')
+    for i in range(0, len(results)): print('Class ', i, '\n', results[i], '\n')
+    
+
 def main():
     
     dataset = np.genfromtxt('mnist.txt')
     input_layer_size = 28 * 28 #there are going to be as much input neurons as there are pixels in each image
     num_classes = 10
     num_hidden_layers = 1
-    hidden_layer_size = 10 #not considering bias units so a + 1 size in each layer should always be taken into account
-    num_epochs = 1000
+    global hidden_layer_size  #not considering bias units so a + 1 size in each layer should always be taken into consideration
+    global num_epochs
     training_set_size = 900
     test_set_size = 100
     num_layers = num_hidden_layers + 1
-    learning_rate = 0.01
+    global learning_rate
 
     train_test, test_set = trim_dataset(dataset, training_set_size, test_set_size)    
     labels, dataset = split_labels(dataset)
     neural_net = ANN(input_layer_size, num_classes, num_hidden_layers, hidden_layer_size, learning_rate, num_layers, dataset, labels) 
     
     train(neural_net, dataset, num_epochs)
-    neural_net.save_weights('model_params.csv')
+    neural_net.save_weights()
     
-    """
     labels_test, dataset_test = split_labels(test_set)
+
+    print('\nRunning generated model on Test set... \n')
+    predictions = classify(dataset_test, labels_test, neural_net)
+    print(predictions)
+    results = compute_confution_matrix(predictions, num_classes)
+    print('\nRESULTS = \n')
+    for i in range(0, len(results)): print('Class ', i, '\n', results[i], '\n')
     
-    print('\nRESULTS = \n', compute_confution_matrix(labels, num_classes))
-    """
 
 
 if __name__ == '__main__':
-    main()
+    u_input = input('Train a new architecture?(Y/N)\n')
+    if u_input.lower() == 'y':
+        main()
+    else:
+        demo()
