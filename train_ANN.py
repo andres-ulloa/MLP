@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 label_position = 28 * 28
 num_epochs = 5000
 hidden_layer_size = 25
-learning_rate = 0.00005
+learning_rate = 0.0005
 
 
 def find_highest_scoring_class(vector):
